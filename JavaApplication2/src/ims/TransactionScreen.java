@@ -25,7 +25,8 @@ public class TransactionScreen extends javax.swing.JFrame {
     public int getProductQuantity(String productName){
         int result = 0;
         Helper.initialize();
-        String query = "SELECT quantity FROM Product WHERE product_name = ?";
+        // COLLATE NOCASE makes the product_name value case-insensitive
+        String query = "SELECT quantity FROM Product WHERE product_name = ? COLLATE NOCASE";
         try{
             PreparedStatement pstmt = Helper.conn.prepareStatement(query);
             pstmt.setString(1, productName);
@@ -72,17 +73,25 @@ public class TransactionScreen extends javax.swing.JFrame {
             Helper.logger("saveTransaction ", e);
         }
         
+         if(getProductQuantity(productName) == 0){
+                JOptionPane.showMessageDialog(null, "Product out of stock", "Inventory Restock", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        
         if(getProductQuantity(productName) < 3){
             JOptionPane.showMessageDialog(null, "Product inventory getting low. Please restock", "Inventory Restock", JOptionPane.WARNING_MESSAGE);
-            if(getProductQuantity(productName) == 0){
-                JOptionPane.showMessageDialog(null, "Product out of stock", "Inventory Restock", JOptionPane.ERROR_MESSAGE);
-            }
         }
+        
         try{
             quantity = Integer.parseInt(quantityTxt.getText());
         }catch(NumberFormatException e){
             quantityTxt.setText("");
             Helper.logger("saveTransaction ", e);
+        }
+        
+        if(quantity > getProductQuantity(productName)){
+            JOptionPane.showMessageDialog(null, "Quantity greater than available stock. Cannot save transaction", "Transaction Save Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
         
         

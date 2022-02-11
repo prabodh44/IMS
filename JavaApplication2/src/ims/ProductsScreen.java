@@ -65,7 +65,7 @@ public class ProductsScreen extends javax.swing.JFrame {
             String query = "INSERT INTO product(product_name, price, quantity) VALUES (?, ?, ?)";
             PreparedStatement pstmt = Helper.conn.prepareStatement(query);
             System.out.println("pstmt " + pstmt);
-            pstmt.setString(1, product.getProductName().toLowerCase().trim());
+            pstmt.setString(1, product.getProductName().trim());
             pstmt.setDouble(2, product.getPrice());
             pstmt.setInt(3, product.getQuantity());
 
