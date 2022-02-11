@@ -173,7 +173,7 @@ public class LoginScreen extends javax.swing.JFrame {
     }//GEN-LAST:event_signupBtnActionPerformed
 
     private void passwordTxtKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_passwordTxtKeyReleased
-        // TODO add your handling code here:
+        // Login when enter is pressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             String username = userNameTxt.getText();
             String password = passwordTxt.getText();
