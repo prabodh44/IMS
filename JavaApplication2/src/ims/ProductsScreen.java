@@ -486,6 +486,7 @@ public class ProductsScreen extends javax.swing.JFrame {
         }else{
             Product product = new Product(pname, price, qty);
             this.insertProduct(product);
+            JOptionPane.showMessageDialog(null, "New Product has been added", "Product", JOptionPane.INFORMATION_MESSAGE);
         }
 
 
@@ -493,6 +494,9 @@ public class ProductsScreen extends javax.swing.JFrame {
 
     private void clearAllBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearAllBtnActionPerformed
         // TODO add your handling code here:
+        productNameTxt.setText("");
+        quantityTxt.setText("");
+        priceTxt.setText("");
     }//GEN-LAST:event_clearAllBtnActionPerformed
 
     private void showAllBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showAllBtnActionPerformed
