@@ -21,22 +21,22 @@ public class ProductsScreen extends javax.swing.JFrame {
 
     public ProductsScreen() {
         initComponents();
-        this.setResizable(false);
+        loadMinQuantityToTable();
+        //this.setResizable(false);
     }
     
     private void loadData(){
         PreparedStatement pst;
         ResultSet rs;
         
-        
         try {
             //Class.forName("org.sqlite.JDBC");
             // con=java.sql.DriverManager.getConnection("jdbc:sqlite:maindb.db");
             Helper.initialize();
-            String query="select * from product";
+            String query="SELECT * FROM product";
             pst=Helper.conn.prepareStatement(query);
             rs=pst.executeQuery();
-            DefaultTableModel tblModel=(DefaultTableModel)productsTable.getModel();
+            DefaultTableModel tblModel=(DefaultTableModel)allProductsTable.getModel();
             tblModel.setRowCount(0);
             int sno = 1;
             while(rs.next())
@@ -57,6 +57,36 @@ public class ProductsScreen extends javax.swing.JFrame {
         
     }
 
+    public void loadMinQuantityToTable(){
+        PreparedStatement pst;
+        ResultSet rs;
+        
+        try {
+            //Class.forName("org.sqlite.JDBC");
+            // con=java.sql.DriverManager.getConnection("jdbc:sqlite:maindb.db");
+            Helper.initialize();
+            String query="SELECT * FROM Product WHERE quantity < 3 ORDER BY quantity ASC";
+            pst=Helper.conn.prepareStatement(query);
+            rs=pst.executeQuery();
+            DefaultTableModel tblModel=(DefaultTableModel)productsTable.getModel();
+            tblModel.setRowCount(0);
+            int sno = 1;
+            while(rs.next())
+            {
+                String productName = rs.getString("product_name");
+                String price = rs.getString("price");
+                String qty = rs.getString("quantity");
+                
+                String tbData[]={sno+"",productName,price,qty};
+                tblModel.addRow(tbData);
+                        sno++;
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null,e);
+        }finally{
+            Helper.closeSQLConnection();
+        }
+    }
     
     public void insertProduct(Product product) {
 
@@ -178,6 +208,9 @@ public class ProductsScreen extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        allProductsDialog = new javax.swing.JDialog();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        allProductsTable = new javax.swing.JTable();
         jLabel1 = new javax.swing.JLabel();
         productNameLbl = new javax.swing.JLabel();
         productNameTxt = new javax.swing.JTextField();
@@ -191,6 +224,52 @@ public class ProductsScreen extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         productsTable = new javax.swing.JTable();
         addTransaction = new javax.swing.JButton();
+
+        allProductsDialog.setPreferredSize(new java.awt.Dimension(600, 400));
+
+        allProductsTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "S.no.", "Product Name", "Quantity", "Price"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Integer.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, true, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane3.setViewportView(allProductsTable);
+
+        javax.swing.GroupLayout allProductsDialogLayout = new javax.swing.GroupLayout(allProductsDialog.getContentPane());
+        allProductsDialog.getContentPane().setLayout(allProductsDialogLayout);
+        allProductsDialogLayout.setHorizontalGroup(
+            allProductsDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(allProductsDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 375, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        allProductsDialogLayout.setVerticalGroup(
+            allProductsDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(allProductsDialogLayout.createSequentialGroup()
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 13, Short.MAX_VALUE))
+        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setForeground(new java.awt.Color(255, 0, 0));
@@ -314,7 +393,7 @@ public class ProductsScreen extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(68, 68, 68)
                         .addComponent(addTransaction, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 127, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 137, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel1)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -323,12 +402,12 @@ public class ProductsScreen extends javax.swing.JFrame {
                 .addGroup(layout.createSequentialGroup()
                     .addGap(22, 22, 22)
                     .addComponent(productNameLbl)
-                    .addContainerGap(828, Short.MAX_VALUE)))
+                    .addContainerGap(835, Short.MAX_VALUE)))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                     .addGap(22, 22, 22)
                     .addComponent(productNameTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(638, Short.MAX_VALUE)))
+                    .addContainerGap(644, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -336,7 +415,7 @@ public class ProductsScreen extends javax.swing.JFrame {
                 .addComponent(jLabel1)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(125, 125, 125)
+                        .addGap(129, 129, 129)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(priceLbl)
                             .addComponent(quantityLbl))
@@ -354,17 +433,17 @@ public class ProductsScreen extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(0, 2, Short.MAX_VALUE))
+                .addGap(0, 26, Short.MAX_VALUE))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                     .addGap(92, 92, 92)
                     .addComponent(productNameLbl)
-                    .addContainerGap(383, Short.MAX_VALUE)))
+                    .addContainerGap(409, Short.MAX_VALUE)))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                     .addGap(124, 124, 124)
                     .addComponent(productNameTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(334, Short.MAX_VALUE)))
+                    .addContainerGap(360, Short.MAX_VALUE)))
         );
 
         pack();
@@ -418,7 +497,12 @@ public class ProductsScreen extends javax.swing.JFrame {
 
     private void showAllBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showAllBtnActionPerformed
        // this.showDataToTable();
-       loadData();
+       //loadData();
+       allProductsDialog.setVisible(true);
+       allProductsDialog.setSize(400, 400);
+       if(allProductsDialog.isVisible()){
+           loadData();
+       }
 
     }//GEN-LAST:event_showAllBtnActionPerformed
 
@@ -466,9 +550,12 @@ public class ProductsScreen extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addBtn;
     private javax.swing.JButton addTransaction;
+    private javax.swing.JDialog allProductsDialog;
+    private javax.swing.JTable allProductsTable;
     private javax.swing.JButton clearAllBtn;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel priceLbl;
     private javax.swing.JTextField priceTxt;
     private javax.swing.JLabel productNameLbl;
