@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Vector;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 
 
@@ -20,6 +22,29 @@ public class TransactionScreen extends javax.swing.JFrame {
 
     public TransactionScreen() {
         initComponents();
+        loadDataToComboBox();
+        
+    }
+    
+    public void loadDataToComboBox(){
+        // get products from the database
+        Helper.initialize();
+        Vector<String> productNames = new Vector<String>();
+        String query = "SELECT product_name FROM Product ORDER BY product_name";
+        try{
+            PreparedStatement pstmt = Helper.conn.prepareStatement(query);
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()){
+                productNames.add(rs.getString("product_name"));
+            }
+        }catch(SQLException e){
+            Helper.logger("loadDataToComboBox", e);
+        }finally{
+            Helper.closeSQLConnection();
+        }
+        
+        DefaultComboBoxModel model = new DefaultComboBoxModel(productNames);
+        productComboBox.setModel(model);
     }
     
     public int getProductQuantity(String productName){
@@ -50,8 +75,9 @@ public class TransactionScreen extends javax.swing.JFrame {
         int quantity = 0;
         double sellingPrice = 0.0;
         
-        String productName = productTxt.getText().toLowerCase().trim();
-                
+       
+        String productName = productComboBox.getSelectedItem().toString();
+                        
         try{
             invoiceID = Integer.parseInt(invoiceNumberTxt.getText());
         }catch(NumberFormatException e){
@@ -133,7 +159,6 @@ public class TransactionScreen extends javax.swing.JFrame {
 
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        productTxt = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         invoiceNumberTxt = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
@@ -151,6 +176,7 @@ public class TransactionScreen extends javax.swing.JFrame {
         jLabel10 = new javax.swing.JLabel();
         quantityTxt = new javax.swing.JTextField();
         updateDeleteTransactionBtn = new javax.swing.JButton();
+        productComboBox = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Transaction Screen");
@@ -160,8 +186,6 @@ public class TransactionScreen extends javax.swing.JFrame {
 
         jLabel2.setFont(new java.awt.Font("Segoe UI Light", 0, 14)); // NOI18N
         jLabel2.setText("Product Name");
-
-        productTxt.setFont(new java.awt.Font("Corbel", 0, 12)); // NOI18N
 
         jLabel3.setFont(new java.awt.Font("Segoe UI Light", 0, 14)); // NOI18N
         jLabel3.setText("Invoice ID");
@@ -232,6 +256,13 @@ saveTransactionBtn.addActionListener(new java.awt.event.ActionListener() {
         }
     });
 
+    productComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+    productComboBox.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent evt) {
+            productComboBoxActionPerformed(evt);
+        }
+    });
+
     javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
@@ -264,9 +295,9 @@ saveTransactionBtn.addActionListener(new java.awt.event.ActionListener() {
                         .addComponent(quantityTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(sellingPriceTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(costPriceTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(productTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(invoiceNumberTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))))
-            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(invoiceNumberTxt, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(productComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE))))
+            .addContainerGap(416, Short.MAX_VALUE))
         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
             .addContainerGap(255, Short.MAX_VALUE)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -289,8 +320,8 @@ saveTransactionBtn.addActionListener(new java.awt.event.ActionListener() {
             .addComponent(invoiceNumberTxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addGap(18, 18, 18)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(productTxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addComponent(jLabel2))
+                .addComponent(jLabel2)
+                .addComponent(productComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(jLabel4)
@@ -303,7 +334,7 @@ saveTransactionBtn.addActionListener(new java.awt.event.ActionListener() {
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(jLabel10)
                 .addComponent(quantityTxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
             .addComponent(jLabel6)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -337,6 +368,10 @@ saveTransactionBtn.addActionListener(new java.awt.event.ActionListener() {
         // TODO add your handling code here:
         new UpdateDeleteTransaction(this, rootPaneCheckingEnabled).setVisible(true);
     }//GEN-LAST:event_updateDeleteTransactionBtnActionPerformed
+
+    private void productComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productComboBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_productComboBoxActionPerformed
 
     /**
      * @param args the command line arguments
@@ -388,7 +423,7 @@ saveTransactionBtn.addActionListener(new java.awt.event.ActionListener() {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JComboBox<String> monthCombo;
-    private javax.swing.JTextField productTxt;
+    private javax.swing.JComboBox<String> productComboBox;
     private javax.swing.JTextField quantityTxt;
     private javax.swing.JButton saveTransactionBtn;
     private javax.swing.JTextField sellingPriceTxt;
