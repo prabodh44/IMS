@@ -12,8 +12,6 @@ import java.util.Vector;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 
-
-
 /**
  *
  * @author User
@@ -23,115 +21,129 @@ public class TransactionScreen extends javax.swing.JFrame {
     public TransactionScreen() {
         initComponents();
         loadDataToComboBox();
-        
+
     }
-    
-    public void loadDataToComboBox(){
+
+    public void loadDataToComboBox() {
         // get products from the database
         Helper.initialize();
         Vector<String> productNames = new Vector<String>();
         String query = "SELECT product_name FROM Product ORDER BY product_name";
-        try{
+        try {
             PreparedStatement pstmt = Helper.conn.prepareStatement(query);
             ResultSet rs = pstmt.executeQuery();
-            while(rs.next()){
+            while (rs.next()) {
                 productNames.add(rs.getString("product_name"));
             }
-        }catch(SQLException e){
+        } catch (SQLException e) {
             Helper.logger("loadDataToComboBox", e);
-        }finally{
+        } finally {
             Helper.closeSQLConnection();
         }
-        
+
         DefaultComboBoxModel model = new DefaultComboBoxModel(productNames);
         productComboBox.setModel(model);
     }
-    
-    public int getProductQuantity(String productName){
+
+    public int getProductQuantity(String productName) {
         int result = 0;
         Helper.initialize();
         // COLLATE NOCASE makes the product_name value case-insensitive
         String query = "SELECT quantity FROM Product WHERE product_name = ? COLLATE NOCASE";
-        try{
+        try {
             PreparedStatement pstmt = Helper.conn.prepareStatement(query);
             pstmt.setString(1, productName);
             ResultSet rs = pstmt.executeQuery();
-            if(rs.next()){
+            if (rs.next()) {
                 result = rs.getInt("quantity");
-            }else{
+            } else {
                 JOptionPane.showMessageDialog(null, "Product may not exist");
             }
-        }catch(SQLException e){
+        } catch (SQLException e) {
             Helper.logger("getProductQuantity", e);
-        }finally{
+        } finally {
             Helper.closeSQLConnection();
         }
         return result;
     }
-    
-    public void saveTransaction(){
+
+    public void updateProductQuantity(String productName, int newProductQuantity) {
+        String query = "UPDATE Product SET quantity = ? Where product_name = ? COLLATE NOCASE";
+
+        Helper.initialize();
+        try {
+            PreparedStatement pstmt = Helper.conn.prepareStatement(query);
+            pstmt.setInt(1, newProductQuantity);
+            pstmt.setString(2, productName);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            Helper.logger("updateProductQuantity", e);
+        } finally {
+            Helper.closeSQLConnection();
+        }
+
+    }
+
+    public void saveTransaction() {
         int invoiceID = 0;
         int costPrice = 0;
         int quantity = 0;
+        int newProductQuantity = 0;
         double sellingPrice = 0.0;
-        
-       
+
         String productName = productComboBox.getSelectedItem().toString();
-                        
-        try{
+        try {
             invoiceID = Integer.parseInt(invoiceNumberTxt.getText());
-        }catch(NumberFormatException e){
+        } catch (NumberFormatException e) {
             invoiceNumberTxt.setText("");
             Helper.logger("saveTransaction ", e);
         }
-        
-        try{
+
+        try {
             costPrice = Integer.parseInt(costPriceTxt.getText());
-        }catch(NumberFormatException e){
+        } catch (NumberFormatException e) {
             costPriceTxt.setText("");
             Helper.logger("saveTransaction ", e);
         }
-        
-        try{
+
+        try {
             sellingPrice = Double.parseDouble(sellingPriceTxt.getText());
-        }catch(NumberFormatException e){
+        } catch (NumberFormatException e) {
             sellingPriceTxt.setText("");
             Helper.logger("saveTransaction ", e);
         }
-        
-         if(getProductQuantity(productName) == 0){
-                JOptionPane.showMessageDialog(null, "Product out of stock", "Inventory Restock", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        
-        if(getProductQuantity(productName) < 3){
+
+        if (getProductQuantity(productName) == 0) {
+            JOptionPane.showMessageDialog(null, "Product out of stock", "Inventory Restock", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (getProductQuantity(productName) < 3) {
             JOptionPane.showMessageDialog(null, "Product inventory getting low. Please restock", "Inventory Restock", JOptionPane.WARNING_MESSAGE);
         }
-        
-        try{
+
+        try {
             quantity = Integer.parseInt(quantityTxt.getText());
-        }catch(NumberFormatException e){
+        } catch (NumberFormatException e) {
             quantityTxt.setText("");
             Helper.logger("saveTransaction ", e);
         }
-        
-        if(quantity > getProductQuantity(productName)){
+
+        if (quantity > getProductQuantity(productName)) {
             JOptionPane.showMessageDialog(null, "Quantity greater than available stock. Cannot save transaction", "Transaction Save Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
-        
+
         //date format: YYMMDD
-        String date = String.valueOf(yearCombo.getSelectedItem()) + String.valueOf(monthCombo.getSelectedItem()) + String.valueOf(dayCombo.getSelectedItem()); 
-        
+        String date = String.valueOf(yearCombo.getSelectedItem()) + String.valueOf(monthCombo.getSelectedItem()) + String.valueOf(dayCombo.getSelectedItem());
+
         // insert all the data into database
         String query = "INSERT INTO ProductTransaction (date, invoice_number, product_name, cost_price, selling_price, quantity) VALUES (?, ?, ?, ?, ?, ?)";
         Helper.initialize();
-        try{
-            
-            
+        try {
+
             PreparedStatement pstmt = Helper.conn.prepareStatement(query);
-            
+
             pstmt.setString(1, date);
             pstmt.setInt(2, invoiceID);
             pstmt.setString(3, productName);
@@ -141,11 +153,19 @@ public class TransactionScreen extends javax.swing.JFrame {
 
             pstmt.executeUpdate();
             System.out.println("Transaction successfully inserted");
-        }catch(SQLException e){
+            JOptionPane.showMessageDialog(null, "Transaction has been saved", "Transactions", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException e) {
             Helper.logger("saveTransaction", e);
-        }finally{
+        } finally {
             Helper.closeSQLConnection();
         }
+
+        // decrease the product quanity in the Product Table after adding Transaction Record
+        int previousProductQuantity = getProductQuantity(productName);
+
+        newProductQuantity = previousProductQuantity - quantity;
+        updateProductQuantity(productName, newProductQuantity);
+
     }
 
     /**
